@@ -1,9 +1,7 @@
-name = "lvtie"
+name = "trip-patch"
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
-
-# Cloudflare Pages 项目配置
-# 部署命令: npx @cloudflare/next-on-pages && npx wrangler pages deploy .vercel/output/static
+pages_build_output_dir = ".vercel/output/static"
 
 [vars]
 # 公共环境变量可在此声明
