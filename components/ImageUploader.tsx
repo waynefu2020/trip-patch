@@ -63,7 +63,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         ${
           isDragging
             ? "border-ink bg-parchment scale-[1.02]"
-            : "border-sand bg-cream"
+            : "border-muted bg-cream"
         }
       `}
     >
@@ -74,12 +74,12 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         onChange={onInputChange}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />
-      <div className="flex flex-col items-center gap-3 text-muted">
-        <div className="w-14 h-14 rounded-full border border-sand flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3 text-ink/70">
+        <div className="w-14 h-14 rounded-full border border-ink/20 flex items-center justify-center">
           <Camera className="w-6 h-6" />
         </div>
-        <p className="text-sm tracking-wide">点击上传旅行照片</p>
-        <p className="text-xs opacity-60">或拖拽图片到此处</p>
+        <p className="text-sm tracking-wide text-ink/80">点击上传旅行照片</p>
+        <p className="text-xs text-ink/50">或拖拽图片到此处</p>
       </div>
     </div>
   );

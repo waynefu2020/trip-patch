@@ -110,7 +110,7 @@ export default function Home() {
           <h1 className="font-serif italic text-3xl text-ink tracking-tight">
             旅贴
           </h1>
-          <p className="text-xs text-muted tracking-[0.12em] font-sans uppercase">
+          <p className="text-xs text-ink/60 tracking-[0.12em] font-sans uppercase">
             一张照片，一张旅行海报
           </p>
         </div>
@@ -132,7 +132,7 @@ export default function Home() {
                 setLocation("");
                 setTime(getCurrentTime());
               }}
-              className="text-xs text-muted underline underline-offset-4 font-sans"
+              className="text-xs text-ink/60 underline underline-offset-4 font-sans"
             >
               重新选择图片
             </button>
@@ -174,7 +174,7 @@ export default function Home() {
         )}
 
         {/* Footer */}
-        <p className="text-[10px] text-muted/60 tracking-wider font-sans">
+        <p className="text-[10px] text-ink/40 tracking-wider font-sans">
           Made with wanderlust ✦
         </p>
       </div>

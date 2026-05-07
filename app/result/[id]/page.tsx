@@ -36,7 +36,7 @@ export default function ResultPage() {
     return (
       <main className="min-h-screen bg-cream flex items-center justify-center px-6">
         <div className="text-center">
-          <p className="text-muted text-sm tracking-wide">
+          <p className="text-ink/60 text-sm tracking-wide">
             未找到海报，请返回首页重新生成
           </p>
           <a

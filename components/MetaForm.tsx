@@ -27,11 +27,11 @@ export function MetaForm({
     <div className="space-y-4 w-full">
       {/* Location */}
       <div className="space-y-1.5">
-        <label className="text-xs text-muted tracking-widest uppercase font-sans">
+        <label className="text-xs text-ink/60 tracking-widest uppercase font-sans">
           地点
         </label>
         <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/50" />
           <input
             type="text"
             value={location}
@@ -62,11 +62,11 @@ export function MetaForm({
 
       {/* Time */}
       <div className="space-y-1.5">
-        <label className="text-xs text-muted tracking-widest uppercase font-sans">
+        <label className="text-xs text-ink/60 tracking-widest uppercase font-sans">
           时间
         </label>
         <div className="relative">
-          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/50" />
           <input
             type="text"
             value={time}
