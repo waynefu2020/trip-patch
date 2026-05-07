@@ -1,0 +1,14 @@
+name = "lvtie"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare Pages 项目配置
+# 部署命令: npx @cloudflare/next-on-pages && npx wrangler pages deploy .vercel/output/static
+
+[vars]
+# 公共环境变量可在此声明
+# 敏感变量如 OPENAI_API_KEY 请通过 Cloudflare Dashboard 设置
+
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "your_kv_namespace_id"

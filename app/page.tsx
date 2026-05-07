@@ -1,112 +1,182 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { ImageUploader } from "@/components/ImageUploader";
+import { MetaForm } from "@/components/MetaForm";
+import { LoadingState } from "@/components/LoadingState";
+import { compressImage } from "@/lib/image-utils";
+import { extractDateTime, getCurrentTime } from "@/lib/exif";
+import { Sparkle } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [location, setLocation] = useState("");
+  const [time, setTime] = useState(getCurrentTime());
+  const [isRecognizing, setIsRecognizing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleImageSelect = useCallback(
+    async (selectedFile: File, url: string) => {
+      try {
+        const compressed = await compressImage(selectedFile);
+        setFile(compressed);
+        setPreviewUrl(url);
+
+        // Extract EXIF time
+        const exifTime = await extractDateTime(compressed);
+        if (exifTime) {
+          setTime(exifTime);
+        }
+      } catch {
+        setFile(selectedFile);
+        setPreviewUrl(url);
+      }
+    },
+    []
+  );
+
+  const handleRecognize = useCallback(async () => {
+    if (!file) return;
+    setIsRecognizing(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await fetch("/api/recognize", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.location) {
+        setLocation(data.location);
+      } else {
+        alert(data.error || "识别失败，请手动输入");
+      }
+    } catch {
+      alert("识别失败，请手动输入地点");
+    } finally {
+      setIsRecognizing(false);
+    }
+  }, [file]);
+
+  const handleGenerate = useCallback(async () => {
+    if (!file || !location.trim()) {
+      alert("请上传图片并填写地点");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("location", location.trim());
+      formData.append("time", time.trim() || getCurrentTime());
+
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.image) {
+        sessionStorage.setItem(
+          "lvtie_result",
+          JSON.stringify({ image: data.image })
+        );
+        router.push("/result/" + Date.now());
+      } else {
+        alert(data.error || "生成失败，请重试");
+        setIsGenerating(false);
+      }
+    } catch {
+      alert("生成失败，请检查网络后重试");
+      setIsGenerating(false);
+    }
+  }, [file, location, time, router]);
+
+  if (isGenerating) {
+    return <LoadingState />;
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="min-h-screen bg-cream">
+      <div className="max-w-md mx-auto px-6 py-10 flex flex-col items-center gap-8">
+        {/* Header */}
+        <div className="text-center space-y-2 animate-fade-in">
+          <h1 className="font-serif italic text-3xl text-ink tracking-tight">
+            旅贴
+          </h1>
+          <p className="text-xs text-muted tracking-[0.12em] font-sans uppercase">
+            一张照片，一张旅行海报
+          </p>
         </div>
-      </div>
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+        {/* Upload or Preview */}
+        {previewUrl ? (
+          <div className="w-full space-y-4 animate-slide-up">
+            <div className="relative w-full aspect-[4/5] rounded-lg overflow-hidden border border-sand">
+              <img
+                src={previewUrl}
+                alt="预览"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setFile(null);
+                setPreviewUrl(null);
+                setLocation("");
+                setTime(getCurrentTime());
+              }}
+              className="text-xs text-muted underline underline-offset-4 font-sans"
+            >
+              重新选择图片
+            </button>
+          </div>
+        ) : (
+          <ImageUploader onImageSelect={handleImageSelect} />
+        )}
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+        {/* Meta Form */}
+        {previewUrl && (
+          <div className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
+            <MetaForm
+              defaultLocation={location}
+              defaultTime={time}
+              onLocationChange={setLocation}
+              onTimeChange={setTime}
+              onRecognize={handleRecognize}
+              isRecognizing={isRecognizing}
+            />
+          </div>
+        )}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+        {/* Generate CTA */}
+        {previewUrl && (
+          <button
+            onClick={handleGenerate}
+            disabled={!location.trim()}
+            className="w-full py-4 bg-ink text-cream rounded-lg
+              font-serif italic text-[15px]
+              flex items-center justify-center gap-2
+              hover:bg-ink/90 transition-colors
+              disabled:opacity-40 disabled:cursor-not-allowed
+              active:scale-[0.98] animate-slide-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <Sparkle className="w-4 h-4" />
+            生成旅行海报
+          </button>
+        )}
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        {/* Footer */}
+        <p className="text-[10px] text-muted/60 tracking-wider font-sans">
+          Made with wanderlust ✦
+        </p>
       </div>
     </main>
   );
