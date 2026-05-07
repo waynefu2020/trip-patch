@@ -1,6 +1,15 @@
 const baseUrl = process.env.OPENAI_BASE_URL || "https://ark.cn-beijing.volces.com/api/v3";
 const apiKey = process.env.OPENAI_API_KEY;
 
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 async function arkFetch(path: string, body: unknown): Promise<any> {
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY is not configured");
@@ -29,7 +38,7 @@ export async function generatePoster(
   imageBuffer: ArrayBuffer,
   prompt: string
 ): Promise<string> {
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+  const base64 = arrayBufferToBase64(imageBuffer);
 
   const data = await arkFetch("/images/generations", {
     model: "doubao-seedream-5-0-260128",
@@ -58,7 +67,7 @@ export async function generatePoster(
 export async function analyzePhoto(
   imageBuffer: ArrayBuffer
 ): Promise<{ description: string; location: string }> {
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+  const base64 = arrayBufferToBase64(imageBuffer);
 
   const data = await arkFetch("/chat/completions", {
     model: "doubao-vision-pro-32k-241028",
