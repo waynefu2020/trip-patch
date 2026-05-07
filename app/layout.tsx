@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     "上传旅行照片，AI 自动生成复古旅行海报。上下分区设计，建筑冰箱贴风格，一键分享到小红书。",
   icons: {
     icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 

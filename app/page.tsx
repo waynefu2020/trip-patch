@@ -141,13 +141,20 @@ export default function Home() {
     <main className="min-h-screen bg-cream">
       <div className="max-w-md mx-auto px-6 py-10 flex flex-col items-center gap-8">
         {/* Header */}
-        <div className="text-center space-y-2 animate-fade-in">
-          <h1 className="font-serif italic text-3xl text-ink tracking-tight">
-            旅贴
-          </h1>
-          <p className="text-xs text-ink/60 tracking-[0.12em] font-sans uppercase">
-            一张照片，一张旅行海报
-          </p>
+        <div className="flex items-center gap-3 animate-fade-in">
+          <img
+            src="/logo.png"
+            alt=""
+            className="w-11 h-11 rounded-[22%]"
+          />
+          <div className="text-left">
+            <h1 className="font-serif italic text-3xl text-ink tracking-tight">
+              旅贴
+            </h1>
+            <p className="text-xs text-ink/60 tracking-[0.12em] font-sans uppercase">
+              一张照片，一张旅行海报
+            </p>
+          </div>
         </div>
 
         {/* Upload or Preview */}
