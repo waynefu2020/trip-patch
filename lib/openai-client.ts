@@ -64,9 +64,21 @@ export async function generatePoster(
   throw new Error("Unexpected API response format: missing url");
 }
 
+export interface SubjectPosition {
+  horizontal: string;
+  vertical: string;
+}
+
+export interface PhotoAnalysis {
+  description: string;
+  location: string;
+  subject: string;
+  subjectPosition: SubjectPosition;
+}
+
 export async function analyzePhoto(
   imageBuffer: ArrayBuffer
-): Promise<{ description: string; location: string }> {
+): Promise<PhotoAnalysis> {
   const base64 = arrayBufferToBase64(imageBuffer);
 
   const data = await arkFetch("/chat/completions", {
@@ -75,7 +87,7 @@ export async function analyzePhoto(
       {
         role: "system",
         content:
-          'You are a travel photography analyst. Analyze the image and provide two things in JSON format: 1) "description": a vivid English description of the photo\'s main subject, colors, mood, and style (2-3 sentences); 2) "location": the English name of the landmark or city shown. Respond ONLY with valid JSON like {"description":"...","location":"..."}',
+          'You are a travel photography analyst. Analyze the image and provide four things in JSON format: 1) "description": a vivid English description of the photo\'s main subject, colors, mood, and style (2-3 sentences); 2) "location": the English name of the landmark or city shown; 3) "subject": a concise English description of the single most prominent architectural element or landmark in the photo (1 sentence). This should specifically describe the main building, structure, or monument that should be used as the fridge-magnet icon; 4) "subjectPosition": an object with "horizontal" and "vertical" keys indicating where the main subject sits in the frame. Use exactly one of these values for each: horizontal: "far-left", "left", "center-left", "center", "center-right", "right", "far-right"; vertical: "top", "upper", "center", "lower", "bottom". Respond ONLY with valid JSON like {"description":"...","location":"...","subject":"...","subjectPosition":{"horizontal":"...","vertical":"..."}}',
       },
       {
         role: "user",
@@ -104,11 +116,13 @@ export async function analyzePhoto(
       return {
         description: parsed.description || "",
         location: parsed.location || "",
+        subject: parsed.subject || "",
+        subjectPosition: parsed.subjectPosition || { horizontal: "center", vertical: "center" },
       };
     }
   } catch {
     // Fallback
   }
 
-  return { description: content, location: "" };
+  return { description: content, location: "", subject: "", subjectPosition: { horizontal: "center", vertical: "center" } };
 }

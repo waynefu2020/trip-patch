@@ -22,7 +22,11 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const analysis = await analyzePhoto(arrayBuffer);
 
-    return NextResponse.json({ location: analysis.location || "" });
+    return NextResponse.json({
+      location: analysis.location || "",
+      subject: analysis.subject || "",
+      subjectPosition: analysis.subjectPosition || { horizontal: "center", vertical: "center" },
+    });
   } catch (error: any) {
     console.error("Recognize error:", error);
     return NextResponse.json(

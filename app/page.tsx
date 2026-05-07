@@ -7,14 +7,19 @@ import { MetaForm } from "@/components/MetaForm";
 import { LoadingState } from "@/components/LoadingState";
 import { compressImage } from "@/lib/image-utils";
 import { extractDateTime, getCurrentTime } from "@/lib/exif";
-import { Sparkle } from "lucide-react";
+import { smartCrop, type SubjectPosition } from "@/lib/crop-utils";
+import { Sparkle, RotateCcw } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [originalPreviewUrl, setOriginalPreviewUrl] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [time, setTime] = useState(getCurrentTime());
+  const [subject, setSubject] = useState("");
+  const [isCropped, setIsCropped] = useState(false);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -24,6 +29,10 @@ export default function Home() {
         const compressed = await compressImage(selectedFile);
         setFile(compressed);
         setPreviewUrl(url);
+        setOriginalFile(compressed);
+        setOriginalPreviewUrl(url);
+        setIsCropped(false);
+        setSubject("");
 
         // Extract EXIF time
         const exifTime = await extractDateTime(compressed);
@@ -33,6 +42,10 @@ export default function Home() {
       } catch {
         setFile(selectedFile);
         setPreviewUrl(url);
+        setOriginalFile(selectedFile);
+        setOriginalPreviewUrl(url);
+        setIsCropped(false);
+        setSubject("");
       }
     },
     []
@@ -53,7 +66,26 @@ export default function Home() {
       const data = await res.json();
       if (data.location) {
         setLocation(data.location);
-      } else {
+      }
+      if (data.subject) {
+        setSubject(data.subject);
+      }
+
+      // Smart crop based on subject position
+      const subjectPosition = data.subjectPosition as SubjectPosition | undefined;
+      if (subjectPosition && file) {
+        try {
+          const cropped = await smartCrop(file, subjectPosition);
+          const croppedUrl = URL.createObjectURL(cropped);
+          setFile(cropped);
+          setPreviewUrl(croppedUrl);
+          setIsCropped(true);
+        } catch {
+          // If crop fails, keep original image
+        }
+      }
+
+      if (!data.location) {
         alert(data.error || "识别失败，请手动输入");
       }
     } catch {
@@ -75,6 +107,9 @@ export default function Home() {
       formData.append("image", file);
       formData.append("location", location.trim());
       formData.append("time", time.trim() || getCurrentTime());
+      if (subject) {
+        formData.append("subject", subject);
+      }
 
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -96,7 +131,7 @@ export default function Home() {
       alert("生成失败，请检查网络后重试");
       setIsGenerating(false);
     }
-  }, [file, location, time, router]);
+  }, [file, location, time, subject, router]);
 
   if (isGenerating) {
     return <LoadingState />;
@@ -125,17 +160,36 @@ export default function Home() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <button
-              onClick={() => {
-                setFile(null);
-                setPreviewUrl(null);
-                setLocation("");
-                setTime(getCurrentTime());
-              }}
-              className="text-xs text-ink/60 underline underline-offset-4 font-sans"
-            >
-              重新选择图片
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setFile(null);
+                  setPreviewUrl(null);
+                  setOriginalFile(null);
+                  setOriginalPreviewUrl(null);
+                  setLocation("");
+                  setTime(getCurrentTime());
+                  setSubject("");
+                  setIsCropped(false);
+                }}
+                className="text-xs text-ink/60 underline underline-offset-4 font-sans"
+              >
+                重新选择图片
+              </button>
+              {isCropped && originalFile && originalPreviewUrl && (
+                <button
+                  onClick={() => {
+                    setFile(originalFile);
+                    setPreviewUrl(originalPreviewUrl);
+                    setIsCropped(false);
+                  }}
+                  className="flex items-center gap-1 text-xs text-brick underline underline-offset-4 font-sans"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  重置裁剪
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <ImageUploader onImageSelect={handleImageSelect} />

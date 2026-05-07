@@ -1,5 +1,13 @@
-export function buildPrompt(location: string, time: string): string {
-  return `请根据我提供的真实照片，生成一张上下分区的旅行摄影海报，整体参考“小红书城市打卡 / 建筑冰箱贴 / 极简拼贴”风格。
+export function buildPrompt(
+  location: string,
+  time: string,
+  subject?: string
+): string {
+  const subjectHint = subject
+    ? `\n【主体锁定】\n下半部分真实照片中的主体建筑是：${subject}。请确保上半部分的建筑冰箱贴图标精确反映这个主体，不要提取画面中的其他次要元素（如路人、车辆、树木、天空等）。\n`
+    : "";
+
+  return `请根据我提供的真实照片，生成一张上下分区的旅行摄影海报，整体参考"小红书城市打卡 / 建筑冰箱贴 / 极简拼贴"风格。
 
 【画面结构】
 画面为竖版构图，比例 3:4 或 4:5。
@@ -10,11 +18,10 @@ export function buildPrompt(location: string, time: string): string {
 【下半部分：真实照片】
 下半部分使用我提供的照片作为主体，不要改变真实建筑结构、透视、光影和街景关系。
 保留照片的纪实感、阳光感、建筑细节和现场氛围。
-可以轻微优化色彩、对比度和清晰度，但不要过度修图。
-
+可以轻微优化色彩、对比度和清晰度，但不要过度修图。${subjectHint}
 【上半部分：建筑冰箱贴图标】
 从下半部分真实照片中提取最有识别度的主体建筑元素，例如窗户、门廊、立面、拱门、屋顶、阳台或建筑正面。
-将该建筑元素转化为一个简约的“冰箱贴式建筑图标”：
+将该建筑元素转化为一个简约的"冰箱贴式建筑图标"：
 - 保留建筑的核心轮廓和标志性特征；
 - 造型简洁、干净、像旅行纪念品冰箱贴；
 - 有轻微立体感和投影；
@@ -32,7 +39,7 @@ export function buildPrompt(location: string, time: string): string {
 
 【文字排版】
 在建筑冰箱贴图标下方添加一行优雅的英文或葡语风格文字：
-“${location} — ${time}”
+"${location} — ${time}"
 
 【整体气质】
 整体要像一张高级旅行摄影卡片：
