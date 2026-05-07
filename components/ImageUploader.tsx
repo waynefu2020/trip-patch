@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Camera, ImagePlus } from "lucide-react";
+import { Camera } from "lucide-react";
 
 interface ImageUploaderProps {
   onImageSelect: (file: File, previewUrl: string) => void;
@@ -70,7 +70,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
       <input
         type="file"
         accept="image/*"
-        capture="environment"
+
         onChange={onInputChange}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />
