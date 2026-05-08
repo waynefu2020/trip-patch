@@ -20,6 +20,16 @@ export async function compressImage(file: File): Promise<File> {
   }
 }
 
+export async function compressDownloadImage(file: File): Promise<File> {
+  return imageCompression(file, {
+    maxWidthOrHeight: 1800,
+    maxSizeMB: 1,
+    initialQuality: 0.9,
+    useWebWorker: true,
+    fileType: "image/jpeg",
+  });
+}
+
 export function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

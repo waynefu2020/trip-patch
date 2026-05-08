@@ -1,20 +1,49 @@
 "use client";
 
+import { useState } from "react";
 import { Download, RefreshCw, Share2 } from "lucide-react";
+import { compressDownloadImage } from "@/lib/image-utils";
 
 interface ShareActionsProps {
   imageUrl: string;
 }
 
 export function ShareActions({ imageUrl }: ShareActionsProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const handleDownload = async () => {
+    if (isDownloading) {
+      return;
+    }
+
+    const timestamp = Date.now();
     try {
+      setIsDownloading(true);
       const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error("Image download failed");
+      }
+
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const originalFile = new File([blob], `trip-patch-poster-${timestamp}.png`, {
+        type: blob.type || "image/png",
+      });
+
+      let downloadBlob = blob;
+      let downloadName = `trip-patch-poster-${timestamp}.png`;
+
+      try {
+        const compressedFile = await compressDownloadImage(originalFile);
+        downloadBlob = compressedFile;
+        downloadName = `trip-patch-poster-${timestamp}.jpg`;
+      } catch {
+        // If compression fails, fall back to the original generated image.
+      }
+
+      const url = URL.createObjectURL(downloadBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `lvtie-poster-${Date.now()}.png`;
+      link.download = downloadName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -22,6 +51,8 @@ export function ShareActions({ imageUrl }: ShareActionsProps) {
     } catch {
       // Fallback: open in new tab
       window.open(imageUrl, "_blank");
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -29,8 +60,8 @@ export function ShareActions({ imageUrl }: ShareActionsProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "我的旅贴海报",
-          text: "用旅贴生成的旅行海报",
+          title: "我的 Trip Patch 海报",
+          text: "用 Trip Patch 生成的旅行海报",
           url: window.location.href,
         });
       } catch {
@@ -55,12 +86,16 @@ export function ShareActions({ imageUrl }: ShareActionsProps) {
       <div className="max-w-md mx-auto grid grid-cols-3 gap-3">
         <button
           onClick={handleDownload}
+          disabled={isDownloading}
           className="flex flex-col items-center gap-1.5 py-3 px-2
             bg-ink text-cream rounded-lg
-            hover:bg-ink/90 transition-colors active:scale-[0.98]"
+            hover:bg-ink/90 transition-colors active:scale-[0.98]
+            disabled:opacity-60 disabled:cursor-wait"
         >
           <Download className="w-4 h-4" />
-          <span className="text-xs font-sans tracking-wide">保存到相册</span>
+          <span className="text-xs font-sans tracking-wide">
+            {isDownloading ? "压缩中..." : "保存到相册"}
+          </span>
         </button>
 
         <button

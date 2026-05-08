@@ -7,6 +7,9 @@ import { useParams } from "next/navigation";
 import { ShareActions } from "@/components/ShareActions";
 import { LoadingState } from "@/components/LoadingState";
 
+const RESULT_STORAGE_KEY = "trip_patch_result";
+const LEGACY_RESULT_STORAGE_KEY = "lvtie_result";
+
 export default function ResultPage() {
   const params = useParams();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -14,7 +17,9 @@ export default function ResultPage() {
 
   useEffect(() => {
     // In MVP, we store the result in sessionStorage
-    const stored = sessionStorage.getItem("lvtie_result");
+    const stored =
+      sessionStorage.getItem(RESULT_STORAGE_KEY) ||
+      sessionStorage.getItem(LEGACY_RESULT_STORAGE_KEY);
     if (stored) {
       try {
         const data = JSON.parse(stored);

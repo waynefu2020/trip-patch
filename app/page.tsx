@@ -10,6 +10,8 @@ import { extractDateTime, getCurrentTime } from "@/lib/exif";
 import { smartCrop, type SubjectPosition } from "@/lib/crop-utils";
 import { Sparkle, RotateCcw } from "lucide-react";
 
+const RESULT_STORAGE_KEY = "trip_patch_result";
+
 interface RecognizeResponse {
   location?: string;
   subject?: string;
@@ -136,7 +138,7 @@ export default function Home() {
       const data = (await res.json()) as GenerateResponse;
       if (data.image) {
         sessionStorage.setItem(
-          "lvtie_result",
+          RESULT_STORAGE_KEY,
           JSON.stringify({ image: data.image })
         );
         router.push("/result/" + Date.now());

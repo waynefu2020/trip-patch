@@ -11,7 +11,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "旅贴 LüTie — 一张照片，一张旅行海报",
+  title: "旅贴 Trip Patch — 一张照片，一张旅行海报",
   description:
     "上传旅行照片，AI 自动生成复古旅行海报。上下分区设计，建筑冰箱贴风格，一键分享到小红书。",
   icons: {
