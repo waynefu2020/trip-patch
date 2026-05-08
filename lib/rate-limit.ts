@@ -25,17 +25,7 @@ export async function checkRateLimit(
   const maxRequests = 10;
 
   if (!env?.RATE_LIMIT_KV) {
-    if (process.env.NODE_ENV !== "production") {
-      return { allowed: true, remaining: maxRequests, resetTime: Infinity };
-    }
-
-    return {
-      allowed: false,
-      remaining: 0,
-      resetTime: Infinity,
-      status: 503,
-      error: "生成服务限流配置缺失，请稍后再试",
-    };
+    return { allowed: true, remaining: maxRequests, resetTime: Infinity };
   }
 
   const kv = env.RATE_LIMIT_KV;
