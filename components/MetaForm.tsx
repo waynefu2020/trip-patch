@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { MapPin, Clock, Sparkles } from "lucide-react";
 
 interface MetaFormProps {
-  defaultLocation?: string;
-  defaultTime?: string;
+  location: string;
+  time: string;
   onLocationChange: (value: string) => void;
   onTimeChange: (value: string) => void;
   onRecognize: () => void;
@@ -13,16 +12,13 @@ interface MetaFormProps {
 }
 
 export function MetaForm({
-  defaultLocation = "",
-  defaultTime = "",
+  location,
+  time,
   onLocationChange,
   onTimeChange,
   onRecognize,
   isRecognizing,
 }: MetaFormProps) {
-  const [location, setLocation] = useState(defaultLocation);
-  const [time, setTime] = useState(defaultTime);
-
   return (
     <div className="space-y-4 w-full">
       {/* Location */}
@@ -37,7 +33,6 @@ export function MetaForm({
             value={location}
             placeholder="White Dagoba"
             onChange={(e) => {
-              setLocation(e.target.value);
               onLocationChange(e.target.value);
             }}
             className="w-full pl-9 pr-4 py-3 bg-ivory border border-sand rounded-md
@@ -72,7 +67,6 @@ export function MetaForm({
             value={time}
             placeholder="16:20 PM"
             onChange={(e) => {
-              setTime(e.target.value);
               onTimeChange(e.target.value);
             }}
             className="w-full pl-9 pr-4 py-3 bg-ivory border border-sand rounded-md

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getOptionalRequestContext } from "@cloudflare/next-on-pages";
 import { generatePoster } from "@/lib/openai-client";
 import { buildPrompt } from "@/lib/prompt";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -7,11 +8,12 @@ export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   try {
-    const rateLimit = await checkRateLimit(req);
+    const requestContext = getOptionalRequestContext();
+    const rateLimit = await checkRateLimit(req, requestContext?.env);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "今日生成次数已达上限，请明天再来" },
-        { status: 429 }
+        { error: rateLimit.error || "今日生成次数已达上限，请明天再来" },
+        { status: rateLimit.status || 429 }
       );
     }
 

@@ -10,6 +10,18 @@ import { extractDateTime, getCurrentTime } from "@/lib/exif";
 import { smartCrop, type SubjectPosition } from "@/lib/crop-utils";
 import { Sparkle, RotateCcw } from "lucide-react";
 
+interface RecognizeResponse {
+  location?: string;
+  subject?: string;
+  subjectPosition?: SubjectPosition;
+  error?: string;
+}
+
+interface GenerateResponse {
+  image?: string;
+  error?: string;
+}
+
 export default function Home() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
@@ -63,7 +75,7 @@ export default function Home() {
         body: formData,
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as RecognizeResponse;
       if (data.location) {
         setLocation(data.location);
       }
@@ -116,7 +128,7 @@ export default function Home() {
         body: formData,
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as GenerateResponse;
       if (data.image) {
         sessionStorage.setItem(
           "lvtie_result",
@@ -206,8 +218,8 @@ export default function Home() {
         {previewUrl && (
           <div className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
             <MetaForm
-              defaultLocation={location}
-              defaultTime={time}
+              location={location}
+              time={time}
               onLocationChange={setLocation}
               onTimeChange={setTime}
               onRecognize={handleRecognize}
