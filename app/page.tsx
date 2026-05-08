@@ -76,6 +76,11 @@ export default function Home() {
       });
 
       const data = (await res.json()) as RecognizeResponse;
+      if (!res.ok) {
+        alert(data.error || "AI 识别暂时不可用，请手动输入地点");
+        return;
+      }
+
       if (data.location) {
         setLocation(data.location);
       }
@@ -98,10 +103,10 @@ export default function Home() {
       }
 
       if (!data.location) {
-        alert(data.error || "识别失败，请手动输入");
+        alert("识别失败，请手动输入地点");
       }
     } catch {
-      alert("识别失败，请手动输入地点");
+      alert("AI 识别暂时不可用，请手动输入地点");
     } finally {
       setIsRecognizing(false);
     }

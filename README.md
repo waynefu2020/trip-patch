@@ -1,5 +1,28 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Environment
+
+The project uses Volcengine Ark for image generation and location recognition.
+
+Required variables:
+
+```bash
+OPENAI_API_KEY=ark-...
+OPENAI_BASE_URL=https://ark.cn-beijing.volces.com/api/v3
+OPENAI_VISION_BASE_URL=https://api.moonshot.cn/v1
+OPENAI_VISION_API_KEY=sk-...
+OPENAI_VISION_MODEL=kimi-k2.5
+```
+
+Image generation and vision recognition can use different providers.
+
+- `OPENAI_API_KEY` and `OPENAI_BASE_URL` are used for poster generation.
+- `OPENAI_VISION_BASE_URL`, `OPENAI_VISION_API_KEY`, and `OPENAI_VISION_MODEL`
+  are used only for image understanding.
+
+For Kimi vision recognition, use the OpenAI-compatible Moonshot endpoint and a
+multimodal model such as `kimi-k2.5`.
+
 ## Getting Started
 
 First, run the development server:

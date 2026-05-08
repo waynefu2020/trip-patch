@@ -1,5 +1,10 @@
 const baseUrl = process.env.OPENAI_BASE_URL || "https://ark.cn-beijing.volces.com/api/v3";
 const apiKey = process.env.OPENAI_API_KEY;
+const visionBaseUrl = process.env.OPENAI_VISION_BASE_URL || baseUrl;
+const visionApiKey = process.env.OPENAI_VISION_API_KEY || apiKey;
+const visionModel = process.env.OPENAI_VISION_MODEL;
+const usesKimiVision =
+  visionBaseUrl.includes("moonshot.cn") || (visionModel?.startsWith("kimi-") ?? false);
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
@@ -28,6 +33,30 @@ async function arkFetch(path: string, body: unknown): Promise<any> {
     const errorText = await response.text();
     throw new Error(
       `API error: ${response.status} ${response.statusText} — ${errorText.slice(0, 300)}`
+    );
+  }
+
+  return response.json();
+}
+
+async function visionFetch(path: string, body: unknown): Promise<any> {
+  if (!visionApiKey) {
+    throw new Error("OPENAI_VISION_API_KEY is not configured");
+  }
+
+  const response = await fetch(`${visionBaseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${visionApiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Vision API error: ${response.status} ${response.statusText} - ${errorText.slice(0, 300)}`
     );
   }
 
@@ -76,13 +105,40 @@ export interface PhotoAnalysis {
   subjectPosition: SubjectPosition;
 }
 
+function extractAssistantText(message: any): string {
+  if (typeof message?.content === "string" && message.content.trim()) {
+    return message.content.trim();
+  }
+
+  if (Array.isArray(message?.content)) {
+    const text = message.content
+      .map((part: any) => (typeof part?.text === "string" ? part.text : ""))
+      .join("")
+      .trim();
+    if (text) {
+      return text;
+    }
+  }
+
+  if (typeof message?.reasoning_content === "string" && message.reasoning_content.trim()) {
+    return message.reasoning_content.trim();
+  }
+
+  return "";
+}
+
 export async function analyzePhoto(
   imageBuffer: ArrayBuffer
 ): Promise<PhotoAnalysis> {
+  if (!visionModel) {
+    throw new Error("OPENAI_VISION_MODEL is not configured");
+  }
+
   const base64 = arrayBufferToBase64(imageBuffer);
 
-  const data = await arkFetch("/chat/completions", {
-    model: "doubao-vision-pro-32k-241028",
+  const data = await visionFetch("/chat/completions", {
+    model: visionModel,
+    ...(usesKimiVision ? { thinking: { type: "disabled" as const } } : {}),
     messages: [
       {
         role: "system",
@@ -98,13 +154,17 @@ export async function analyzePhoto(
               url: `data:image/jpeg;base64,${base64}`,
             },
           },
+          {
+            type: "text",
+            text: "Analyze this image and return the requested JSON only.",
+          },
         ],
       },
     ],
     max_tokens: 300,
   });
 
-  const content = data.choices?.[0]?.message?.content?.trim();
+  const content = extractAssistantText(data.choices?.[0]?.message);
   if (!content) {
     throw new Error("Could not analyze photo");
   }
